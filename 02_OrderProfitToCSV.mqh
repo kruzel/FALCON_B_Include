@@ -50,7 +50,7 @@ void OrderProfitToCSV(int terminalNumber)
       int headerHandle = FileOpen(fileName,FILE_CSV|FILE_READ|FILE_WRITE|FILE_SHARE_READ|FILE_SHARE_WRITE);
       if (headerHandle != INVALID_HANDLE)
       {
-        string headers = "MagicNumber,Ticket,OpenTime,CloseTime,Profit,Symbol,OrderType,SMA20,EMA20,RSI14,StochMain,StochSignal,BBUpper,BBMiddle,BBLower,MFI14,OBV,CCI14";
+        string headers = "MagicNumber,Symbol,Ticket,OpenTime,CloseTime,Lots,Profit,OrderType,SMA20,EMA20,RSI14,StochMain,StochSignal,BBUpper,BBMiddle,BBLower,MFI14,OBV,CCI14";
         FileWrite(headerHandle, headers);
         FileClose(headerHandle);
       }
@@ -64,6 +64,7 @@ void OrderProfitToCSV(int terminalNumber)
                  // recover info needed
                  double  profit  = OrderProfit() + OrderSwap() + OrderCommission();
                  string ordPair  = OrderSymbol();
+                 double lots   = OrderLots();
                  // Technical indicators at order close time
                  double sma20 = iMA(ordPair, PERIOD_CURRENT, 20, 0, MODE_SMA, PRICE_CLOSE, 0);
                  double ema20 = iMA(ordPair, PERIOD_CURRENT, 20, 0, MODE_EMA, PRICE_CLOSE, 0);
@@ -86,8 +87,8 @@ void OrderProfitToCSV(int terminalNumber)
                  if (dataHandle != INVALID_HANDLE)
                  {
                    FileSeek(dataHandle, 0, SEEK_END);
-                   string data = string(MagicNumber) + "," + string(ordTicket) + "," + string(ordOT) + "," + string(ordCT) + ","
-                   + DoubleToStr(profit,2)+ ","+ordPair+","+string(ordTyp) + "," + DoubleToStr(sma20,5) + "," + DoubleToStr(ema20,5) + ","
+                   string data = string(MagicNumber)+ "," + ordPair + "," + string(ordTicket) + "," + string(ordOT) + "," + string(ordCT) + ","
+                   + DoubleToStr(lots,2) + "," + DoubleToStr(profit,2) + "," +string(ordTyp) + "," + DoubleToStr(sma20,5) + "," + DoubleToStr(ema20,5) + ","
                    + DoubleToStr(rsi14,2) + "," + DoubleToStr(stochMain,2) + "," + DoubleToStr(stochSignal,2) + ","
                    + DoubleToStr(bbUpper,5) + "," + DoubleToStr(bbMiddle,5) + "," + DoubleToStr(bbLower,5) + ","
                    + DoubleToStr(mfi14,2) + "," + DoubleToStr(obv,0) + "," + DoubleToStr(cci14,2);
