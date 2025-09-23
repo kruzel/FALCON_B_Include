@@ -50,7 +50,7 @@ void OrderProfitToCSV(int terminalNumber)
       int headerHandle = FileOpen(fileName,FILE_CSV|FILE_READ|FILE_WRITE|FILE_SHARE_READ|FILE_SHARE_WRITE);
       if (headerHandle != INVALID_HANDLE)
       {
-        string headers = "MagicNumber,Symbol,Ticket,OpenTime,CloseTime,Lots,Profit,OrderType,SMA20,EMA20,RSI14,StochMain,StochSignal,BBUpper,BBMiddle,BBLower,MFI14,OBV,CCI14";
+        string headers = "MagicNumber,Symbol,Ticket,OpenTime,CloseTime,Lots,Profit,OrderType,SMA20,EMA20,RSI14,StochMain,StochSignal,BBUpper,BBMiddle,BBLower,MFI14,OBV,CCI14,ATR14";
         FileWrite(headerHandle, headers);
         FileClose(headerHandle);
       }
@@ -77,6 +77,7 @@ void OrderProfitToCSV(int terminalNumber)
                  double mfi14 = iMFI(ordPair, PERIOD_CURRENT, 14, 0);
                  double obv = iOBV(ordPair, PERIOD_CURRENT, PRICE_CLOSE, 0);
                  double cci14 = iCCI(ordPair, PERIOD_CURRENT, 14, PRICE_TYPICAL, 0);
+                 double atr14 = iATR(ordPair, PERIOD_CURRENT, 14, 0);
                  int     ordTyp  = OrderType();
                  datetime ordOT  = OrderOpenTime();
                  datetime ordCT  = OrderCloseTime();
@@ -91,7 +92,7 @@ void OrderProfitToCSV(int terminalNumber)
                    + DoubleToStr(lots,2) + "," + DoubleToStr(profit,2) + "," +string(ordTyp) + "," + DoubleToStr(sma20,5) + "," + DoubleToStr(ema20,5) + ","
                    + DoubleToStr(rsi14,2) + "," + DoubleToStr(stochMain,2) + "," + DoubleToStr(stochSignal,2) + ","
                    + DoubleToStr(bbUpper,5) + "," + DoubleToStr(bbMiddle,5) + "," + DoubleToStr(bbLower,5) + ","
-                   + DoubleToStr(mfi14,2) + "," + DoubleToStr(obv,0) + "," + DoubleToStr(cci14,2);
+                   + DoubleToStr(mfi14,2) + "," + DoubleToStr(obv,0) + "," + DoubleToStr(cci14,2) + "," + DoubleToStr(atr14,5);
                    FileWrite(dataHandle, data);   //write data to the file during each for loop iteration
                    FileClose(dataHandle);        //close file when data write is over
                  }
