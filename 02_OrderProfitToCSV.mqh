@@ -50,7 +50,7 @@ void OrderProfitToCSV(int terminalNumber)
       int headerHandle = FileOpen(fileName,FILE_CSV|FILE_READ|FILE_WRITE|FILE_SHARE_READ|FILE_SHARE_WRITE);
       if (headerHandle != INVALID_HANDLE)
       {
-        string headers = "MagicNumber,Symbol,Ticket,OpenTime,CloseTime,Lots,Profit,OrderType,SMA20,EMA20,RSI14,StochMain,StochSignal,BBUpper,BBMiddle,BBLower,MFI14,OBV,CCI14,ATR14";
+        string headers = "MagicNumber,Symbol,Ticket,OpenTime,CloseTime,Lots,Profit,OrderType,signalReason,SMA20,EMA20,RSI14,StochMain,StochSignal,BBUpper,BBMiddle,BBLower,MFI14,OBV,CCI14,ATR14";
         FileWrite(headerHandle, headers);
         FileClose(headerHandle);
       }
@@ -82,6 +82,7 @@ void OrderProfitToCSV(int terminalNumber)
                  datetime ordOT  = OrderOpenTime();
                  datetime ordCT  = OrderCloseTime();
                  int  ordTicket  = OrderTicket();
+                 string signalReasonText = OrderComment();
                  
                  // Open file for appending data
                  int dataHandle = FileOpen(fileName,FILE_CSV|FILE_READ|FILE_WRITE|FILE_SHARE_READ|FILE_SHARE_WRITE);
@@ -89,7 +90,7 @@ void OrderProfitToCSV(int terminalNumber)
                  {
                    FileSeek(dataHandle, 0, SEEK_END);
                    string data = string(MagicNumber)+ "," + ordPair + "," + string(ordTicket) + "," + string(ordOT) + "," + string(ordCT) + ","
-                   + DoubleToStr(lots,2) + "," + DoubleToStr(profit,2) + "," +string(ordTyp) + "," + DoubleToStr(sma20,5) + "," + DoubleToStr(ema20,5) + ","
+                   + DoubleToStr(lots,2) + "," + DoubleToStr(profit,2) + "," +string(ordTyp) + "," + signalReasonText + "," + DoubleToStr(sma20,5) + "," + DoubleToStr(ema20,5) + ","
                    + DoubleToStr(rsi14,2) + "," + DoubleToStr(stochMain,2) + "," + DoubleToStr(stochSignal,2) + ","
                    + DoubleToStr(bbUpper,5) + "," + DoubleToStr(bbMiddle,5) + "," + DoubleToStr(bbLower,5) + ","
                    + DoubleToStr(mfi14,2) + "," + DoubleToStr(obv,0) + "," + DoubleToStr(cci14,2) + "," + DoubleToStr(atr14,5);
