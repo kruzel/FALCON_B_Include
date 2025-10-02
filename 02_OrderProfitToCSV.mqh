@@ -12,6 +12,48 @@
 // version 02 - added order symbol for ticket
 // date 25.12.2016
 // version 03 - added function DoubleToString
+
+//+------------------------------------------------------------------+
+//| GLOBAL VARIABLES FOR ORDER TRACKING
+//+------------------------------------------------------------------+
+struct OrderRecord
+{
+  int ticket;
+  string comment;
+};
+
+// Dynamic array to store order records
+OrderRecord orderList[];
+int orderListSize = 0;
+
+//+------------------------------------------------------------------+
+//| FUNCTION TO ADD ORDER TO LIST
+//+------------------------------------------------------------------+
+void AddOrderToList(int ticketNumber, string orderComment)
+{
+  // Resize array to accommodate new entry
+  ArrayResize(orderList, orderListSize + 1);
+  
+  // Add new order record
+  orderList[orderListSize].ticket = ticketNumber;
+  orderList[orderListSize].comment = orderComment;
+  
+  orderListSize++;
+}
+
+//+------------------------------------------------------------------+
+//| FUNCTION TO GET ORDER COMMENT BY TICKET
+//+------------------------------------------------------------------+
+string GetOrderCommentByTicket(int ticketNumber)
+{
+  for(int i = 0; i < orderListSize; i++)
+  {
+    if(orderList[i].ticket == ticketNumber)
+      return orderList[i].comment;
+  }
+  return "";
+}
+
 //+-------------------------------------------------------------+//
 //Function requires just input of the trade terminal number      //
 //+-------------------------------------------------------------+//
@@ -66,23 +108,23 @@ void OrderProfitToCSV(int terminalNumber)
                  string ordPair  = OrderSymbol();
                  double lots   = OrderLots();
                  // Technical indicators at order close time
-                 double sma20 = iMA(ordPair, PERIOD_CURRENT, 20, 0, MODE_SMA, PRICE_CLOSE, 0);
-                 double ema20 = iMA(ordPair, PERIOD_CURRENT, 20, 0, MODE_EMA, PRICE_CLOSE, 0);
-                 double rsi14 = iRSI(ordPair, PERIOD_CURRENT, 14, PRICE_CLOSE, 0);
-                 double stochMain = iStochastic(ordPair, PERIOD_CURRENT, 5, 3, 3, MODE_SMA, 0, MODE_MAIN, 0);
-                 double stochSignal = iStochastic(ordPair, PERIOD_CURRENT, 5, 3, 3, MODE_SMA, 0, MODE_SIGNAL, 0);
-                 double bbUpper = iBands(ordPair, PERIOD_CURRENT, 20, 2, 0, PRICE_CLOSE, MODE_UPPER, 0);
-                 double bbMiddle = iBands(ordPair, PERIOD_CURRENT, 20, 2, 0, PRICE_CLOSE, MODE_MAIN, 0);
-                 double bbLower = iBands(ordPair, PERIOD_CURRENT, 20, 2, 0, PRICE_CLOSE, MODE_LOWER, 0);
-                 double mfi14 = iMFI(ordPair, PERIOD_CURRENT, 14, 0);
-                 double obv = iOBV(ordPair, PERIOD_CURRENT, PRICE_CLOSE, 0);
-                 double cci14 = iCCI(ordPair, PERIOD_CURRENT, 14, PRICE_TYPICAL, 0);
-                 double atr14 = iATR(ordPair, PERIOD_CURRENT, 14, 0);
+                //  double sma20 = iMA(ordPair, PERIOD_CURRENT, 20, 0, MODE_SMA, PRICE_CLOSE, 0);
+                //  double ema20 = iMA(ordPair, PERIOD_CURRENT, 20, 0, MODE_EMA, PRICE_CLOSE, 0);
+                //  double rsi14 = iRSI(ordPair, PERIOD_CURRENT, 14, PRICE_CLOSE, 0);
+                //  double stochMain = iStochastic(ordPair, PERIOD_CURRENT, 5, 3, 3, MODE_SMA, 0, MODE_MAIN, 0);
+                //  double stochSignal = iStochastic(ordPair, PERIOD_CURRENT, 5, 3, 3, MODE_SMA, 0, MODE_SIGNAL, 0);
+                //  double bbUpper = iBands(ordPair, PERIOD_CURRENT, 20, 2, 0, PRICE_CLOSE, MODE_UPPER, 0);
+                //  double bbMiddle = iBands(ordPair, PERIOD_CURRENT, 20, 2, 0, PRICE_CLOSE, MODE_MAIN, 0);
+                //  double bbLower = iBands(ordPair, PERIOD_CURRENT, 20, 2, 0, PRICE_CLOSE, MODE_LOWER, 0);
+                //  double mfi14 = iMFI(ordPair, PERIOD_CURRENT, 14, 0);
+                //  double obv = iOBV(ordPair, PERIOD_CURRENT, PRICE_CLOSE, 0);
+                //  double cci14 = iCCI(ordPair, PERIOD_CURRENT, 14, PRICE_TYPICAL, 0);
+                //  double atr14 = iATR(ordPair, PERIOD_CURRENT, 14, 0);
                  int     ordTyp  = OrderType();
                  datetime ordOT  = OrderOpenTime();
                  datetime ordCT  = OrderCloseTime();
                  int  ordTicket  = OrderTicket();
-                 string signalReasonText = OrderComment();
+                 string signalReasonText = GetOrderCommentByTicket(ordTicket);
                  
                  // Open file for appending data
                  int dataHandle = FileOpen(fileName,FILE_CSV|FILE_READ|FILE_WRITE|FILE_SHARE_READ|FILE_SHARE_WRITE);
@@ -90,10 +132,11 @@ void OrderProfitToCSV(int terminalNumber)
                  {
                    FileSeek(dataHandle, 0, SEEK_END);
                    string data = string(MagicNumber)+ "," + ordPair + "," + string(ordTicket) + "," + string(ordOT) + "," + string(ordCT) + ","
-                   + DoubleToStr(lots,2) + "," + DoubleToStr(profit,2) + "," +string(ordTyp) + "," + signalReasonText + "," + DoubleToStr(sma20,5) + "," + DoubleToStr(ema20,5) + ","
-                   + DoubleToStr(rsi14,2) + "," + DoubleToStr(stochMain,2) + "," + DoubleToStr(stochSignal,2) + ","
-                   + DoubleToStr(bbUpper,5) + "," + DoubleToStr(bbMiddle,5) + "," + DoubleToStr(bbLower,5) + ","
-                   + DoubleToStr(mfi14,2) + "," + DoubleToStr(obv,0) + "," + DoubleToStr(cci14,2) + "," + DoubleToStr(atr14,5);
+                   + DoubleToStr(lots,2) + "," + DoubleToStr(profit,2) + "," +string(ordTyp) + "," + signalReasonText;
+                  //  + "," + DoubleToStr(sma20,5) + "," + DoubleToStr(ema20,5) + ","
+                  //  + DoubleToStr(rsi14,2) + "," + DoubleToStr(stochMain,2) + "," + DoubleToStr(stochSignal,2) + ","
+                  //  + DoubleToStr(bbUpper,5) + "," + DoubleToStr(bbMiddle,5) + "," + DoubleToStr(bbLower,5) + ","
+                  //  + DoubleToStr(mfi14,2) + "," + DoubleToStr(obv,0) + "," + DoubleToStr(cci14,2) + "," + DoubleToStr(atr14,5);
                    FileWrite(dataHandle, data);   //write data to the file during each for loop iteration
                    FileClose(dataHandle);        //close file when data write is over
                  }
