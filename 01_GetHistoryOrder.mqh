@@ -108,7 +108,7 @@ datetime GetDayStart(datetime time)
 //+------------------------------------------------------------------+
 //| Get Total Loss Amount from Consecutive Failures                  |
 //+------------------------------------------------------------------+
-double GetConsecutiveLossAmount(int Magic, int& consecutiveLosses)
+double GetConsecutiveLossAmount(int Magic, int& consecutiveLosses, bool fromTodayOnly=false)
 {
     double totalLoss = 0;
     consecutiveLosses = 0;
@@ -124,7 +124,7 @@ double GetConsecutiveLossAmount(int Magic, int& consecutiveLosses)
         {
             if(OrderSymbol() == Symbol() && 
                OrderMagicNumber() == Magic && 
-               OrderCloseTime() >= todayStart &&
+               (fromTodayOnly && OrderCloseTime() >= todayStart) &&
                (OrderType() == OP_BUY || OrderType() == OP_SELL))
             {
                 double profit = OrderProfit() + OrderSwap() + OrderCommission();
@@ -152,7 +152,7 @@ double GetConsecutiveLossAmount(int Magic, int& consecutiveLosses)
 double GetConsecutiveFailureCount(int Magic)
 {
     int failureCount = 0;
-    double lossAmount = GetConsecutiveLossAmount(Magic, failureCount); 
+    double lossAmount = GetConsecutiveLossAmount(Magic, failureCount, true); 
     
     return failureCount;
 }
