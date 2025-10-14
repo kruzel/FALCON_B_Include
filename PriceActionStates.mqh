@@ -73,7 +73,6 @@ private:
    PaResults ProcessBar(int i, double atr=0);
    TrendState DetectBarDirection(double prevClose, double currClose, double atr=0);
    string GetPeakDescription(PeakState peakState);
-   string GetTrendDescription(TrendState trendState);
    TrendState DetectTrendState(int i, TrendState trendState, TrendState lastBarDirection, double atr=0);
    PeakState DetectPeakState(int i, int trendState, int newTrend);
    void VisualizePeakOverlay(int i, int peak_state);
@@ -87,6 +86,7 @@ public:
    int Deinit();
    PaResults ProcessBars(int i, double atr=0);
    PriceActionState GetPrevPeaks();
+   string GetTrendDescription(TrendState trendState);
 };
 
 //+------------------------------------------------------------------+
