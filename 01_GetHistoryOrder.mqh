@@ -124,7 +124,7 @@ double GetConsecutiveLossAmount(int Magic, int& consecutiveLosses, bool fromToda
         {
             if(OrderSymbol() == Symbol() && 
                OrderMagicNumber() == Magic && 
-               (fromTodayOnly && OrderCloseTime() >= todayStart) &&
+               (!fromTodayOnly && OrderCloseTime() >= todayStart) &&
                (OrderType() == OP_BUY || OrderType() == OP_SELL))
             {
                 double profit = OrderProfit() + OrderSwap() + OrderCommission();
