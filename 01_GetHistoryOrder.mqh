@@ -124,9 +124,11 @@ double GetConsecutiveLossAmount(int Magic, int& consecutiveLosses, bool fromToda
         {
             if(OrderSymbol() == Symbol() && 
                OrderMagicNumber() == Magic && 
-               (!fromTodayOnly && OrderCloseTime() >= todayStart) &&
                (OrderType() == OP_BUY || OrderType() == OP_SELL))
             {
+               if(fromTodayOnly && OrderCloseTime() < todayStart)
+                    continue; // Skip orders not from today if flag is set
+
                 double profit = OrderProfit() + OrderSwap() + OrderCommission();
                 
                 if(profit < 0)
@@ -251,10 +253,10 @@ double GetTotalProfit(int Magic, string symbol)
     return totalProfit;
 }
 
-int GetLastClosedOrderToday(int Magic, string symbol)
+int GetLastClosedOrderToday(int Magic, string symbol, datetime& lastCloseTime)
 {
-     int lastOrder = 0;
-     datetime lastCloseTime = 0;
+     int lastOrder = -1;
+     lastCloseTime = -1;
 
      // Loop through all closed orders
      for(int i = OrdersHistoryTotal() - 1; i >= 0; i--)
