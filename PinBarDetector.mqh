@@ -18,7 +18,7 @@ bool IsBullishPinBar(int shift, double ratio=3.0)
 
     // Bullish Pin Bar: Lower wick at least 'ratio' times body, small upper wick
     if (lower_wick > body * ratio &&
-        lower_wick > upper_wick)
+        lower_wick > upper_wick * 5)
         // && body/candle_size < 0.3)
     {
         Print("Found bullish pin bar");
@@ -41,7 +41,7 @@ bool IsBearishPinBar(int shift, double ratio=3.0)
 
     // Bearish Pin Bar: Upper wick at least 'ratio' times body, small lower wick
     if (upper_wick > body * ratio &&
-        upper_wick > lower_wick)
+        upper_wick > lower_wick * 5)
         // && body/candle_size < 0.3)
     {
         Print("Found bearish pin bar");
