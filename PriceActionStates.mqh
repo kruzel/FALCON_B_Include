@@ -37,9 +37,12 @@ struct PrevPeaks
 struct PaResults
 {
    int errorCode; // 0 - no error, other values indicate errors
-   TrendState prevTrendState;
+   TrendState prevBarTrendState;
    TrendState trendState;
    PeakState prevBarPeakState;
+   double prevPeakClose;
+   PeakState prevPeakState;
+   TrendState beforePrevPeakTrendState;
 };
 
 //--- internal state variables
@@ -49,9 +52,11 @@ struct PriceActionState
    datetime peakTime1;
    double  peakClose1; //last
    PeakState peakState1;
+   TrendState peakTrendState1;
    datetime peakTime2;
    double  peakClose2; // before last
    PeakState peakState2;
+   TrendState peakTrendState2;
    
    datetime peakTimeHighest;
    double  peakCloseHighest; //last
@@ -96,9 +101,12 @@ int CPriceActionStates::Init()
 {
    PaResults results;
    results.errorCode = 0; // No error
-   results.prevTrendState = NO_TREND;
+   results.prevBarTrendState = NO_TREND;
    results.trendState = NO_TREND;
    results.prevBarPeakState = NO_PEAK;
+   results.prevPeakClose = -1;
+   results.prevPeakState = NO_PEAK;
+   results.beforePrevPeakTrendState = NO_TREND;
 
    if (Bars < 3) return (0);
 
@@ -106,9 +114,11 @@ int CPriceActionStates::Init()
    priceActionState.peakTime1 = Time[Bars-1];
    priceActionState.peakClose1 = -1; //last
    priceActionState.peakState1 = NO_PEAK;
+   priceActionState.peakTrendState1 = NO_TREND;
    priceActionState.peakTime2 = Time[Bars-1];
    priceActionState.peakClose2 = -1; // before last
    priceActionState.peakState2 = NO_PEAK;
+   priceActionState.peakTrendState2 = NO_TREND;
 
    priceActionState.peakTimeHighest = Time[Bars-1];
    priceActionState.peakCloseHighest = -1; 
@@ -153,6 +163,8 @@ PaResults CPriceActionStates::ProcessBars(int i, double atr)
    results.errorCode = 0; // Error code 1 indicates processing error
    results.trendState = NO_TREND;
    results.prevBarPeakState = NO_PEAK;
+   results.prevPeakState = NO_PEAK;
+   results.beforePrevPeakTrendState = NO_TREND;
 
    static datetime lastBarTime = 0;
    if(Time[0] != lastBarTime) {
@@ -178,9 +190,11 @@ PaResults CPriceActionStates::ProcessBar(int i, double atr)
 {
    PaResults results;
    results.errorCode = 0; // Error code 1 indicates processing error
-   results.prevTrendState = NO_TREND;
+   results.prevBarTrendState = NO_TREND;
    results.trendState = NO_TREND;
    results.prevBarPeakState = NO_PEAK;
+   results.prevPeakClose = -1;
+   results.beforePrevPeakTrendState = NO_TREND;
 
    if(PAverbose) Print("ProcessBar start i=", i, ", Time=", TimeToString(Time[i], TIME_DATE | TIME_MINUTES), "--------------------");
    // if(PAverbose) printf("ProcessBar 1, peakTime1=%s, peakTime2=%s", TimeToString(priceActionState.peakTime1), TimeToString(priceActionState.peakTime2));
@@ -200,10 +214,12 @@ PaResults CPriceActionStates::ProcessBar(int i, double atr)
       priceActionState.peakTime2 = priceActionState.peakTime1;
       priceActionState.peakClose2 = priceActionState.peakClose1;
       priceActionState.peakState2 = priceActionState.peakState1;
+      priceActionState.peakTrendState2 = priceActionState.peakTrendState1;
 
       priceActionState.peakTime1 = Time[i+1];
       priceActionState.peakClose1 = Close[i+1]; //last
       priceActionState.peakState1 = peakState;
+      priceActionState.peakTrendState1 = newTrend;
 
       if(peakState == HIGHER_HIGH_PEAK)
       {
@@ -225,9 +241,12 @@ PaResults CPriceActionStates::ProcessBar(int i, double atr)
    }
 
    // results
-   results.prevTrendState = priceActionState.trendState;
+   results.prevBarTrendState = priceActionState.trendState;
    results.trendState = newTrend;
    results.prevBarPeakState = peakState;
+   results.prevPeakClose = priceActionState.peakClose1;
+   results.prevPeakState = priceActionState.peakState1;
+   results.beforePrevPeakTrendState = priceActionState.peakTrendState2;
    
    // update internal state
    priceActionState.trendState = newTrend;
@@ -339,7 +358,7 @@ TrendState CPriceActionStates::DetectTrendState(int i, TrendState trendState, Tr
       Print("DetectTrendState failed to find prevous peaks");
    }
 
-   if(PAverbose) Print("DetectTrendState, close0=", Close[i], ", prevLowClose=", prevLowClose, ", prevHighClose=", prevHighClose);
+   if(PAverbose) Print("DetectTrendState, close[",i,"]=", Close[i], ", prevLowClose=", prevLowClose, ", prevHighClose=", prevHighClose);
 
    if(trendState == NO_TREND)
    {
@@ -403,6 +422,7 @@ TrendState CPriceActionStates::DetectTrendState(int i, TrendState trendState, Tr
 PeakState CPriceActionStates::DetectPeakState(int i, int trendState, int newTrend)
 {
    //printf("DetectPeakState %s -> %s",GetTrendDescription((TrendState) trendState), GetTrendDescription((TrendState)  newTrend));
+   if(PAverbose) Print("DetectTrendState, close[",i+1,"]=", Close[i+1], ", peakClose2=", priceActionState.peakClose2);
 
    if(trendState == newTrend)
        return NO_PEAK; // No change in trend, keep previous peak state
@@ -413,7 +433,7 @@ PeakState CPriceActionStates::DetectPeakState(int i, int trendState, int newTren
    if((trendState == UP_TREND || trendState == DOWN_TREND_RETRACEMENT) && (newTrend == DOWN_TREND || newTrend == UP_TREND_RETRACEMENT))
    {
       //if prev peak is high
-      if(priceActionState.peakState2 == LOWER_HIGH_PEAK && Close[i] > priceActionState.peakClose2)
+      if(priceActionState.peakState2 == LOWER_HIGH_PEAK && Close[i+1] > priceActionState.peakClose2)
       {
          peak_state = HIGHER_HIGH_PEAK;
          if(PAverbose) Print("DetectPeakState HH");
@@ -440,7 +460,7 @@ PeakState CPriceActionStates::DetectPeakState(int i, int trendState, int newTren
    else if((trendState == DOWN_TREND || trendState == UP_TREND_RETRACEMENT) && (newTrend == UP_TREND || newTrend == DOWN_TREND_RETRACEMENT))
    {
       //if prev peak is high
-      if(priceActionState.peakState2 == HIGHER_LOW_PEAK && Close[1] < priceActionState.peakClose2)
+      if(priceActionState.peakState2 == HIGHER_LOW_PEAK && Close[i+1] < priceActionState.peakClose2)
       {
          peak_state = LOWER_LOW_PEAK;
          if(PAverbose) Print("DetectPeakState LL");
